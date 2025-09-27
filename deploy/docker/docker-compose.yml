@@ -1,0 +1,85 @@
+version: '3.8'
+
+services:
+  # Training service
+  training:
+    build:
+      context: ../../
+      dockerfile: deploy/docker/Dockerfile.training
+    container_name: sapling-ml-training
+    volumes:
+      - ../../data:/app/data
+      - ../../experiments:/app/experiments
+      - ../../logs:/app/logs
+    environment:
+      - CUDA_VISIBLE_DEVICES=0
+      - PYTHONPATH=/app
+    command: >
+      python src/train/train.py
+      --config config.yaml
+      --train-split data/processed/splits/train.csv
+      --val-split data/processed/splits/val.csv
+      --test-split data/processed/splits/test.csv
+      --image-dir data/processed
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    profiles:
+      - training
+
+  # Inference server
+  inference:
+    build:
+      context: ../../
+      dockerfile: deploy/docker/Dockerfile.serving
+    container_name: sapling-ml-inference
+    ports:
+      - "8000:8000"
+    volumes:
+      - ../../models:/app/models
+      - ../../config.yaml:/app/config.yaml
+    environment:
+      - PYTHONPATH=/app
+      - MODEL_PATH=/app/models/best_model.pth
+    command: >
+      python src/serve/infer_server.py
+      --config config.yaml
+      --model-path /app/models/best_model.pth
+      --host 0.0.0.0
+      --port 8000
+    depends_on:
+      - redis
+    profiles:
+      - serving
+
+  # Redis for caching (optional)
+  redis:
+    image: redis:7-alpine
+    container_name: sapling-ml-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    profiles:
+      - serving
+
+  # TensorBoard for monitoring
+  tensorboard:
+    build:
+      context: ../../
+      dockerfile: deploy/docker/Dockerfile.training
+    container_name: sapling-ml-tensorboard
+    ports:
+      - "6006:6006"
+    volumes:
+      - ../../experiments:/app/experiments
+    command: tensorboard --logdir=/app/experiments --host=0.0.0.0 --port=6006
+    profiles:
+      - monitoring
+
+volumes:
+  redis_data:

@@ -1,0 +1,204 @@
+# Sapling ML - Crop Disease Detection Configuration
+
+# Dataset configuration
+dataset:
+  name: "mendeley_plant_diseases"
+  num_classes: 39
+  image_size: [224, 224]
+  channels: 3
+  
+  # Data paths
+  raw_data_dir: "data/raw"
+  processed_data_dir: "data/processed"
+  manifest_file: "data/processed/manifest.csv"
+  
+  # Split configuration
+  train_split: 0.7
+  val_split: 0.15
+  test_split: 0.15
+  random_seed: 42
+  
+  # Augmentation settings
+  augmentation:
+    enabled: true
+    horizontal_flip_prob: 0.5
+    vertical_flip_prob: 0.2
+    rotation_limit: 15
+    brightness_limit: 0.2
+    contrast_limit: 0.2
+    saturation_limit: 0.2
+    hue_limit: 0.1
+    blur_limit: 3
+    noise_variance: 0.01
+
+# Model configuration
+model:
+  architecture: "efficientnet_b0"  # efficientnet_b0, mobilenetv3_large, resnet101
+  pretrained: true
+  num_classes: 39
+  dropout_rate: 0.2
+  label_smoothing: 0.05
+  
+  # Model-specific settings
+  efficientnet:
+    model_name: "efficientnet_b0"
+    pretrained_weights: "imagenet"
+  
+  mobilenetv3:
+    model_name: "mobilenetv3_large_100"
+    pretrained_weights: "imagenet"
+  
+  resnet:
+    model_name: "resnet101"
+    pretrained_weights: "imagenet"
+
+# Training configuration
+training:
+  batch_size: 32
+  num_epochs: 100
+  learning_rate: 1e-4
+  weight_decay: 1e-4
+  warmup_epochs: 5
+  
+  # Optimizer settings
+  optimizer: "adamw"
+  scheduler: "cosine_annealing"
+  
+  # Loss function
+  loss: "cross_entropy"  # cross_entropy, focal_loss
+  focal_loss_alpha: 0.25
+  focal_loss_gamma: 2.0
+  
+  # Early stopping
+  early_stopping:
+    enabled: true
+    patience: 10
+    monitor: "val_macro_f1"
+    mode: "max"
+  
+  # Checkpointing
+  save_best: true
+  save_last: true
+  checkpoint_dir: "experiments/checkpoints"
+
+# Evaluation configuration
+evaluation:
+  metrics: ["accuracy", "macro_f1", "weighted_f1", "per_class_precision", "per_class_recall"]
+  save_predictions: true
+  save_confusion_matrix: true
+  cross_dataset_eval: true
+  
+  # Cross-dataset evaluation
+  plantdoc_path: "data/raw/plantdoc"
+
+# Explainability configuration
+explainability:
+  gradcam:
+    enabled: true
+    target_layers: ["last_conv"]
+    save_heatmaps: true
+  
+  shap:
+    enabled: true
+    max_samples: 100
+    save_explanations: true
+
+# Export configuration
+export:
+  formats: ["tflite", "onnx"]
+  
+  # TFLite settings
+  tflite:
+    quantization: "int8"
+    representative_dataset_size: 1000
+    optimize_for_size: true
+  
+  # ONNX settings
+  onnx:
+    opset_version: 11
+    optimize: true
+
+# API configuration
+api:
+  host: "0.0.0.0"
+  port: 8000
+  workers: 1
+  max_request_size: 10  # MB
+
+# Logging configuration
+logging:
+  level: "INFO"
+  log_dir: "experiments/logs"
+  tensorboard: true
+  wandb:
+    enabled: false
+    project: "sapling-ml"
+    entity: "your-username"
+
+# Hardware configuration
+hardware:
+  device: "auto"  # auto, cpu, cuda, mps
+  mixed_precision: true
+  num_workers: 4
+  pin_memory: true
+
+# Class names mapping
+class_names:
+  0: "Apple___Apple_scab"
+  1: "Apple___Black_rot"
+  2: "Apple___Cedar_apple_rust"
+  3: "Apple___healthy"
+  4: "Blueberry___healthy"
+  5: "Cherry___healthy"
+  6: "Cherry___Powdery_mildew"
+  7: "Corn___Cercospora_leaf_spot Gray_leaf_spot"
+  8: "Corn___Common_rust"
+  9: "Corn___healthy"
+  10: "Corn___Northern_Leaf_Blight"
+  11: "Grape___Black_rot"
+  12: "Grape___Esca_(Black_Measles)"
+  13: "Grape___healthy"
+  14: "Grape___Leaf_blight_(Isariopsis_Leaf_Spot)"
+  15: "Orange___Haunglongbing_(Citrus_greening)"
+  16: "Peach___Bacterial_spot"
+  17: "Peach___healthy"
+  18: "Pepper,_bell___Bacterial_spot"
+  19: "Pepper,_bell___healthy"
+  20: "Potato___Early_blight"
+  21: "Potato___healthy"
+  22: "Potato___Late_blight"
+  23: "Raspberry___healthy"
+  24: "Soybean___healthy"
+  25: "Squash___Powdery_mildew"
+  26: "Strawberry___healthy"
+  27: "Strawberry___Leaf_scorch"
+  28: "Tomato___Bacterial_spot"
+  29: "Tomato___Early_blight"
+  30: "Tomato___Late_blight"
+  31: "Tomato___Leaf_Mold"
+  32: "Tomato___Septoria_leaf_spot"
+  33: "Tomato___Spider_mites Two-spotted_spider_mite"
+  34: "Tomato___Target_Spot"
+  35: "Tomato___Tomato_mosaic_virus"
+  36: "Tomato___healthy"
+  37: "Background_without_leaves"
+  38: "Unknown"
+
+# Treatment recommendations
+recommendations:
+  cultural_practices:
+    - "Remove and destroy infected plant material"
+    - "Improve air circulation around plants"
+    - "Water at the base of plants, avoid wetting foliage"
+    - "Ensure proper spacing between plants"
+    - "Rotate crops annually"
+    - "Use disease-resistant varieties when available"
+  
+  chemical_treatment:
+    disclaimer: "Consult a certified agronomist before applying any chemical treatments. Follow all safety guidelines and local regulations."
+    general_advice: "Chemical treatments should be used as a last resort and only under professional guidance."
+  
+  monitoring:
+    - "Regularly inspect plants for early signs of disease"
+    - "Take photos of suspicious symptoms for expert consultation"
+    - "Keep records of disease patterns and treatments"
