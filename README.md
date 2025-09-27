@@ -210,13 +210,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **PlantDoc Dataset**: For cross-dataset evaluation
 - **PyTorch Team**: For the amazing deep learning framework
 - **Open Source Community**: For all the incredible tools and libraries
-
-## 📞 Contact
-
-- **Issues**: [GitHub Issues](https://github.com/yourusername/sapling-ml/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/yourusername/sapling-ml/discussions)
-- **Email**: your.email@example.com
-
 ---
 
 *"The best way to predict the future is to create it... and apparently, that includes predicting plant diseases too!"* 🌱
