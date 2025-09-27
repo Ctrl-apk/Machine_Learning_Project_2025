@@ -1,0 +1,46 @@
+# Dockerfile for Sapling ML Training
+FROM pytorch/pytorch:2.0.1-cuda11.7-cudnn8-devel
+
+# Set working directory
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    git \
+    wget \
+    curl \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+    libsm6 \
+    libxext6 \
+    libxrender-dev \
+    libgomp1 \
+    libgcc-s1 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Python dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Install additional ML packages
+RUN pip install --no-cache-dir \
+    onnx \
+    onnxruntime \
+    tf2onnx \
+    tensorflow-lite
+
+# Copy source code
+COPY . .
+
+# Create necessary directories
+RUN mkdir -p data/raw data/processed experiments logs
+
+# Set environment variables
+ENV PYTHONPATH=/app
+ENV CUDA_VISIBLE_DEVICES=0
+
+# Expose port for TensorBoard
+EXPOSE 6006
+
+# Default command
+CMD ["python", "src/train/train.py", "--help"]
